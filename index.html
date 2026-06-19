@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FieldSync — Gestión de personal en campo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--p:#1B3A6B;--a:#2E6DB4;--al:#4A8FD4;--a2:#60A5FA;
+--w:#fff;--g50:#F8FAFC;--g100:#F1F5F9;--g200:#E2E8F0;
+--g400:#94A3B8;--g600:#475569;--g700:#334155;--g800:#1E293B;
+--ok:#10B981;--warn:#F59E0B;--err:#EF4444;
+--r:14px;--sh:0 4px 24px rgba(27,58,107,.08);--shl:0 12px 48px rgba(27,58,107,.13);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;color:var(--g800);background:var(--w);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4{line-height:1.2;font-weight:700}
+p{line-height:1.7;color:var(--g600)}
+
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+.fi{opacity:0;transform:translateY(32px);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
+.fi.v{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.25s}.d4{transition-delay:.35s}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;z-index:1000;transition:all .35s}
+nav.sc{border-color:var(--g200);box-shadow:0 1px 12px rgba(27,58,107,.06)}
+.ni{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:1140px;margin:0 auto;padding:0 24px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:1.2rem;color:var(--p)}
+.lic{width:36px;height:36px;background:linear-gradient(135deg,var(--a),var(--p));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem}
+.nl{display:flex;gap:24px;list-style:none;align-items:center}
+.nl a{text-decoration:none;color:var(--g600);font-size:.85rem;font-weight:500;transition:color .2s}
+.nl a:hover{color:var(--p)}
+.nc{background:var(--p);color:#fff!important;padding:9px 20px;border-radius:9px;font-size:.82rem!important;font-weight:600!important;transition:all .2s!important}
+.nc:hover{background:var(--a)!important;transform:translateY(-1px)!important}
+.mb{display:none;background:none;border:none;cursor:pointer;font-size:1.5rem;color:var(--p)}
+@media(max-width:768px){
+.nl{display:none}.mb{display:block}
+.nl.op{display:flex;flex-direction:column;position:fixed;top:68px;left:0;right:0;background:#fff;padding:24px;border-bottom:1px solid var(--g200);box-shadow:var(--sh);gap:16px}
+}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:11px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;border:2px solid transparent;text-decoration:none;transition:all .25s;line-height:1}
+.bp{background:var(--a);color:#fff;border-color:var(--a)}
+.bp:hover{background:#245FA0;border-color:#245FA0;transform:translateY(-2px);box-shadow:0 8px 24px rgba(46,109,180,.35)}
+.bo{background:transparent;color:var(--p);border-color:var(--p)}
+.bo:hover{background:var(--p);color:#fff;transform:translateY(-2px)}
+.bw{background:#fff;color:var(--p);border-color:#fff}
+.bw:hover{background:var(--g100);transform:translateY(-2px)}
+.bow{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.bow:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.lbl{display:inline-flex;align-items:center;gap:6px;background:rgba(46,109,180,.08);color:var(--a);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:5px 14px;border-radius:100px;margin-bottom:14px}
+section{padding:100px 0}
+.sh{text-align:center;margin-bottom:60px}
+.st{font-size:clamp(1.8rem,3.8vw,2.5rem);color:var(--p);margin-bottom:14px}
+.ss{font-size:1rem;max-width:520px;margin:0 auto}
+
+/* ===================== HERO ===================== */
+#hero{min-height:100vh;background:var(--p);display:flex;align-items:center;padding:120px 0 80px;position:relative;overflow:hidden}
+.hbg1{position:absolute;top:-30%;right:-15%;width:700px;height:700px;background:radial-gradient(circle,rgba(46,109,180,.4) 0%,transparent 65%);pointer-events:none;animation:hbf 8s ease-in-out infinite alternate}
+.hbg2{position:absolute;bottom:-20%;left:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(74,143,212,.2) 0%,transparent 65%);pointer-events:none;animation:hbf 10s ease-in-out 2s infinite alternate}
+@keyframes hbf{0%{transform:translate(0,0) scale(1)}100%{transform:translate(20px,-20px) scale(1.08)}}
+.hg{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;position:relative;z-index:1}
+@media(max-width:900px){.hg{grid-template-columns:1fr;gap:48px;text-align:center}}
+.hbadge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.8);font-size:.78rem;font-weight:600;padding:6px 16px;border-radius:100px;margin-bottom:22px}
+.hbadge span{width:7px;height:7px;background:#4ADE80;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.6)}}
+.ht{font-size:clamp(2.2rem,5vw,3.4rem);color:#fff;line-height:1.1;margin-bottom:20px;font-weight:900}
+.ht em{font-style:normal;background:linear-gradient(135deg,#60A5FA,#93C5FD);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hsub{font-size:1.05rem;color:rgba(255,255,255,.65);margin-bottom:36px;max-width:460px;line-height:1.65}
+@media(max-width:900px){.hsub{margin:0 auto 36px}}
+.hbtns{display:flex;gap:12px;flex-wrap:wrap}
+@media(max-width:900px){.hbtns{justify-content:center}}
+.hstats{display:flex;gap:40px;margin-top:44px;padding-top:30px;border-top:1px solid rgba(255,255,255,.1)}
+@media(max-width:900px){.hstats{justify-content:center}}
+.hsi{font-size:1.8rem;font-weight:900;color:#fff}
+.hsl{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px}
+
+/* HERO PHONE */
+.hphone{position:relative;display:flex;justify-content:center}
+.phone{width:260px;background:#111;border-radius:40px;padding:12px;box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.06);position:relative;z-index:2}
+.pnotch{width:100px;height:28px;background:#111;border-radius:0 0 18px 18px;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center;gap:6px}
+.pcam{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,#1f1f1f,#333);border:1.5px solid #2a2a2a}
+.pscreen{background:linear-gradient(180deg,#f0f4f8,#fff);border-radius:28px;overflow:hidden;height:480px;position:relative}
+.ptop{height:40px;background:var(--p);display:flex;align-items:center;justify-content:space-between;padding:0 18px}
+.ptl{color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.ptl i{font-size:.9rem}
+.ptr{display:flex;gap:8px;color:rgba(255,255,255,.6);font-size:.85rem}
+.pbody{padding:14px;position:relative}
+
+/* Animated QR card */
+.qrc{background:linear-gradient(135deg,var(--p),#254E8B);border-radius:14px;padding:22px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.qrc::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,rgba(255,255,255,.06),transparent,rgba(255,255,255,.06));animation:qrspin 6s linear infinite}
+@keyframes qrspin{to{transform:rotate(360deg)}}
+.qri{position:relative;z-index:1;font-size:2.6rem;color:#fff;margin-bottom:6px}
+.qrt{position:relative;z-index:1;color:rgba(255,255,255,.7);font-size:.7rem;line-height:1.4}
+.qrpulse{position:absolute;inset:0;border:2px solid rgba(255,255,255,.15);border-radius:14px;animation:qrp 2.5s ease-in-out infinite}
+@keyframes qrp{0%,100%{opacity:0;transform:scale(1)}50%{opacity:1;transform:scale(1.03)}}
+
+/* Info cards */
+.icard{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:9px;box-shadow:0 2px 8px rgba(27,58,107,.07);display:flex;align-items:center;gap:10px;transition:transform .2s;cursor:default;border:1px solid rgba(226,232,240,.6)}
+.icard:hover{transform:scale(1.02)}
+.ici{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.icl{font-size:.66rem;color:var(--g400)}
+.icv{font-size:.82rem;font-weight:700;color:var(--g800);margin-top:1px}
+.icr{margin-left:auto;flex-shrink:0}
+.badge{font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:100px}
+.bdg-ok{background:rgba(16,185,129,.1);color:var(--ok)}
+.bdg-bl{background:rgba(46,109,180,.1);color:var(--a)}
+.bdg-warn{background:rgba(245,158,11,.1);color:var(--warn)}
+.bdg-err{background:rgba(239,68,68,.1);color:var(--err)}
+
+/* Floating notifications */
+.fnot{position:absolute;background:#fff;border-radius:14px;padding:12px 16px;box-shadow:0 12px 40px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;z-index:10;animation:fnotin 1s .5s both}
+.fn1{top:60px;right:-30px}
+.fn2{bottom:80px;left:-30px;animation-delay:1.2s}
+@keyframes fnotin{from{opacity:0;transform:translateY(16px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+.fni{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.fnl{font-size:.68rem;color:var(--g400)}
+.fnv{font-size:.8rem;font-weight:700;color:var(--g800);margin-top:1px}
+
+/* ===================== PROBLEM ===================== */
+#problema{background:var(--g50)}
+.pg{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+@media(max-width:640px){.pg{grid-template-columns:1fr}}
+.pcard{background:#fff;border-radius:var(--r);padding:32px;border:1px solid var(--g200);box-shadow:var(--sh);transition:all .3s;cursor:default;position:relative;overflow:hidden}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--err),var(--warn));transform:scaleX(0);transition:transform .3s;transform-origin:left}
+.pcard:hover{transform:translateY(-5px);box-shadow:var(--shl)}
+.pcard:hover::before{transform:scaleX(1)}
+.picon{width:54px;height:54px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:18px}
+.pcard h3{font-size:1.05rem;color:var(--p);margin-bottom:9px}
+.pcard p{font-size:.88rem}
+.pic1{background:rgba(239,68,68,.08);color:var(--err)}
+.pic2{background:rgba(245,158,11,.08);color:var(--warn)}
+.pic3{background:rgba(27,58,107,.07);color:var(--p)}
+.pic4{background:rgba(148,163,184,.1);color:var(--g600)}
+
+/* ===================== SOLUTION ===================== */
+#solucion{background:#fff}
+.rtabs{display:flex;gap:8px;justify-content:center;margin-bottom:48px;flex-wrap:wrap}
+.rtab{display:flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;border:2px solid var(--g200);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;color:var(--g600);transition:all .25s;position:relative;overflow:hidden}
+.rtab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--a);transform:scaleX(0);transition:transform .25s}
+.rtab:hover{border-color:var(--al);color:var(--a)}
+.rtab.on{background:var(--p);border-color:var(--p);color:#fff;box-shadow:0 4px 16px rgba(27,58,107,.25)}
+.rtab.on::after{display:none}
+.rpanel{display:none;animation:panelin .5s ease both}
+.rpanel.on{display:block}
+@keyframes panelin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.rcont{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+@media(max-width:800px){.rcont{grid-template-columns:1fr;gap:36px}}
+.rinfo h3{font-size:1.5rem;color:var(--p);margin-bottom:10px}
+.rinfo>p{margin-bottom:26px}
+.flist{display:flex;flex-direction:column;gap:14px;list-style:none}
+.fli{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;padding:10px 14px;border-radius:10px;transition:background .2s;cursor:default}
+.fli:hover{background:rgba(46,109,180,.04)}
+.fli .chk{width:22px;height:22px;background:linear-gradient(135deg,var(--ok),#34D399);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;flex-shrink:0;margin-top:1px}
+.fli span{color:var(--g700);line-height:1.6}
+
+/* PHONE MOCKUP — SOLUTION */
+.sphone{position:relative;display:flex;justify-content:center}
+.sp{width:252px;background:#0f0f0f;border-radius:38px;padding:11px;box-shadow:0 24px 60px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.05);position:relative}
+.spn{width:90px;height:26px;background:#0f0f0f;border-radius:0 0 16px 16px;position:absolute;top:11px;left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center}
+.spc{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#333);border:1.5px solid #2a2a2a}
+.sps{background:var(--g50);border-radius:27px;overflow:hidden;height:450px}
+.sbar{background:linear-gradient(135deg,var(--p),#254E8B);padding:38px 16px 14px;display:flex;align-items:center;justify-content:space-between}
+.sbt{color:#fff;font-size:.84rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.sbt i{font-size:.9rem}
+.sbr{display:flex;gap:7px;color:rgba(255,255,255,.5);font-size:.85rem}
+.sbody{padding:12px 12px 16px;display:flex;flex-direction:column;gap:8px}
+
+/* Phone card */
+.pcd{background:#fff;border-radius:12px;padding:11px 13px;box-shadow:0 2px 6px rgba(0,0,0,.05);display:flex;align-items:center;gap:9px;border:1px solid rgba(226,232,240,.5);transition:all .25s;cursor:default}
+.pcd:hover{transform:translateX(3px);border-color:var(--al)}
+.pcdi{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.pcdl{font-size:.62rem;color:var(--g400)}
+.pcdv{font-size:.76rem;font-weight:700;color:var(--g800);margin-top:1px}
+.pcdr{margin-left:auto;flex-shrink:0}
+
+/* Worker animated checkin */
+.checkin-anim{background:linear-gradient(135deg,var(--p),#254E8B);border-radius:14px;padding:20px;text-align:center;position:relative;overflow:hidden}
+.ca-ring{position:absolute;inset:0;border:2px solid rgba(255,255,255,.1);border-radius:14px;animation:caring 3s ease-in-out infinite}
+@keyframes caring{0%,100%{opacity:0;transform:scale(.97)}50%{opacity:1;transform:scale(1.02)}}
+.ca-icon{font-size:2.6rem;color:#fff;position:relative;z-index:1;margin-bottom:4px}
+.ca-scan{height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);position:absolute;left:12px;right:12px;animation:cascan 2.5s ease-in-out infinite;z-index:1}
+@keyframes cascan{0%{top:30px;opacity:0}20%{opacity:1}80%{opacity:1}100%{top:calc(100% - 20px);opacity:0}}
+.ca-label{font-size:.68rem;color:rgba(255,255,255,.65);position:relative;z-index:1}
+
+/* Supervisor person row */
+.prow{background:#fff;border-radius:10px;padding:9px 11px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(226,232,240,.4);transition:all .2s}
+.prow:hover{border-color:var(--al);transform:translateX(3px)}
+.pav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.prn{flex:1;font-size:.72rem;font-weight:600;color:var(--g700)}
+.prt{font-size:.65rem;color:var(--g400);margin-right:4px}
+.prd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-on{background:var(--ok);box-shadow:0 0 6px rgba(16,185,129,.5)}
+.dot-off{background:var(--err)}
+.dot-late{background:var(--warn)}
+
+/* Admin bar chart */
+.minibar{display:flex;align-items:flex-end;gap:4px;height:56px;margin:6px 0}
+.mbar{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--a),var(--al));transition:height .6s cubic-bezier(.34,1.56,.64,1);position:relative;cursor:default;min-height:4px}
+.mbar:hover{filter:brightness(1.12)}
+.mbar::after{content:attr(data-v);position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:.55rem;font-weight:700;color:var(--g400);opacity:0;transition:opacity .2s}
+.mbar:hover::after{opacity:1}
+.mbl{display:flex;gap:4px;margin-top:3px}
+.mbl span{flex:1;text-align:center;font-size:.48rem;color:var(--g400)}
+
+/* Admin project bar */
+.projbar{background:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid rgba(226,232,240,.4)}
+.pbjn{font-size:.7rem;font-weight:700;color:var(--g800);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.pbjp{font-size:.62rem;font-weight:700;color:var(--a)}
+.pbjbg{background:var(--g200);height:6px;border-radius:4px;overflow:hidden;margin-bottom:4px}
+.pbjb{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--a),var(--al));transition:width 1s cubic-bezier(.22,1,.36,1)}
+.pbjm{display:flex;justify-content:space-between;font-size:.6rem;color:var(--g400)}
+
+/* Glow effect behind solution phones */
+.sglow{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(46,109,180,.15),transparent);top:50%;left:50%;transform:translate(-50%,-50%);z-index:0;filter:blur(40px)}
+
+/* ===================== TIMELINE ===================== */
+#implementacion{background:var(--g50)}
+.tlg{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative}
+.tlg::before{content:'';position:absolute;top:37px;left:12.5%;right:12.5%;height:3px;background:var(--g200);z-index:0;border-radius:2px}
+.tlg::after{content:'';position:absolute;top:37px;left:12.5%;height:3px;background:linear-gradient(90deg,var(--al),var(--a),var(--p));z-index:1;border-radius:2px;width:0;transition:width 1.5s cubic-bezier(.22,1,.36,1)}
+.tlg.anim::after{width:75%}
+@media(max-width:900px){.tlg{grid-template-columns:repeat(2,1fr);gap:24px}.tlg::before,.tlg::after{display:none}}
+@media(max-width:500px){.tlg{grid-template-columns:1fr}}
+.tli{position:relative;z-index:2;padding:0 14px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.tldot{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;margin-bottom:18px;color:#fff;position:relative;z-index:3;transition:transform .3s,box-shadow .3s;cursor:default}
+.tldot:hover{transform:scale(1.1)}
+.tl1 .tldot{background:linear-gradient(135deg,var(--al),var(--a));box-shadow:0 0 0 5px rgba(74,143,212,.2)}
+.tl2 .tldot{background:linear-gradient(135deg,var(--a),#3D7DC8);box-shadow:0 0 0 5px rgba(46,109,180,.15)}
+.tl3 .tldot{background:linear-gradient(135deg,#3D7DC8,var(--p));box-shadow:0 0 0 5px rgba(27,58,107,.12)}
+.tl4 .tldot{background:linear-gradient(135deg,var(--p),#112A50);box-shadow:0 0 0 5px rgba(27,58,107,.1)}
+.tlbl{font-size:.65rem;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.tlcard{background:#fff;border-radius:var(--r);padding:24px;box-shadow:var(--sh);border:1px solid var(--g200);flex:1;width:100%;transition:all .3s}
+.tlcard:hover{transform:translateY(-4px);box-shadow:var(--shl)}
+.tlcard h3{font-size:1rem;color:var(--p);margin-bottom:9px}
+.tlcard p{font-size:.82rem;margin-bottom:12px}
+.tltag{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:100px}
+.tlt1{background:rgba(74,143,212,.1);color:var(--al)}
+.tlt2{background:rgba(46,109,180,.1);color:var(--a)}
+.tlt3{background:rgba(27,58,107,.08);color:var(--p)}
+.tlt4{background:rgba(27,58,107,.06);color:var(--p)}
+
+/* ===================== COMPARE ===================== */
+#comparativa{background:#fff}
+.ctbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--r);overflow:hidden;box-shadow:var(--shl);font-size:.86rem}
+.ctbl thead th{padding:18px 22px;text-align:left;font-size:.84rem;font-weight:700}
+.ctbl thead th:first-child{background:var(--g100);color:var(--g600)}
+.ctbl thead th:nth-child(2){background:#FEF3C7;color:#92400E}
+.ctbl thead th:last-child{background:var(--p);color:#fff}
+.ctbl tbody tr{transition:background .2s}
+.ctbl tbody tr:hover td{background:rgba(46,109,180,.03)}
+.ctbl tbody tr td{padding:15px 22px;border-bottom:1px solid var(--g100);vertical-align:middle;transition:all .2s}
+.ctbl tbody tr:last-child td{border-bottom:none}
+.ctbl td:first-child{font-weight:600;color:var(--g700)}
+.bfr{display:flex;align-items:center;gap:7px;color:#92400E;font-size:.84rem}
+.aft{display:flex;align-items:center;gap:7px;color:var(--ok);font-weight:600;font-size:.84rem}
+@media(max-width:600px){.ctbl{font-size:.74rem}.ctbl thead th,.ctbl tbody tr td{padding:11px 10px}}
+
+/* ===================== CTA ===================== */
+#cta{background:linear-gradient(170deg,var(--p) 0%,#112A50 100%);padding:100px 0;text-align:center;position:relative;overflow:hidden}
+.cbg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.cbg div{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.04)}
+.cb1{width:600px;height:600px;top:-200px;left:-100px;animation:cbr 20s linear infinite}
+.cb2{width:400px;height:400px;bottom:-100px;right:-80px;animation:cbr 15s linear infinite reverse}
+@keyframes cbr{to{transform:rotate(360deg)}}
+.ci{position:relative;z-index:1}
+.ctit{font-size:clamp(1.8rem,4vw,2.7rem);color:#fff;margin-bottom:16px;font-weight:900}
+.csub{font-size:1rem;color:rgba(255,255,255,.6);margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto}
+.cbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.ctr{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap}
+.ctri{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.5);font-size:.8rem}
+.ctri i{color:rgba(255,255,255,.3);font-size:1rem}
+
+/* FOOTER */
+footer{background:var(--g800);padding:28px 0;text-align:center}
+footer p{color:var(--g400);font-size:.82rem}
+footer a{color:var(--al);text-decoration:none}
+
+/* ===================== MODAL ===================== */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s}
+.mo.op{opacity:1;pointer-events:all}
+.mdl{background:#fff;border-radius:18px;padding:40px;max-width:460px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.3);transform:translateY(24px) scale(.97);transition:all .3s;position:relative}
+.mo.op .mdl{transform:translateY(0) scale(1)}
+.mx{position:absolute;top:14px;right:14px;background:var(--g100);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--g600);transition:all .2s}
+.mx:hover{background:var(--g200);transform:rotate(90deg)}
+.mdl h2{color:var(--p);margin-bottom:7px;font-size:1.3rem}
+.mdl>p{margin-bottom:22px;font-size:.87rem}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:.78rem;font-weight:600;color:var(--g700);margin-bottom:5px}
+.fg input,.fg select{width:100%;padding:11px 14px;border:1.5px solid var(--g200);border-radius:10px;font-family:'Inter',sans-serif;font-size:.86rem;color:var(--g800);transition:all .2s;outline:none;background:#fff}
+.fg input:focus,.fg select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(46,109,180,.1)}
+.fsu{text-align:center;padding:20px 0;display:none}
+.fsu i{font-size:3rem;color:var(--ok);margin-bottom:10px;display:block}
+.fsu h3{color:var(--p);margin-bottom:7px}
+/* counter anim */
+.cnt{display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nv">
+<div class="ni">
+<a href="#" class="logo"><div class="lic"><i class="ti ti-clock-bolt"></i></div>FieldSync</a>
+<ul class="nl" id="nl">
+<li><a href="#problema">El problema</a></li>
+<li><a href="#solucion">Solución</a></li>
+<li><a href="#implementacion">Implementación</a></li>
+<li><a href="#comparativa">Comparativa</a></li>
+<li><a href="#cta" class="nc">Contactanos</a></li>
+</ul>
+<button class="mb" onclick="tnav()" aria-label="Menú"><i class="ti ti-menu-2" id="mi"></i></button>
+</div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="hero">
+<div class="hbg1"></div><div class="hbg2"></div>
+<div class="wrap">
+<div class="hg">
+<div>
+<div class="hbadge"><span></span>Sistema de gestión en tiempo real</div>
+<h1 class="ht">Terminá con<br/>el papel.<br/><em>Tomá el control</em><br/>de tu equipo.</h1>
+<p class="hsub">FieldSync conecta trabajadores en campo, supervisores y administración en una sola plataforma — horas registradas al instante, sin errores y sin planillas que se pierden.</p>
+<div class="hbtns">
+<button class="btn bp" onclick="om('demo')"><i class="ti ti-player-play"></i>Ver demo</button>
+<button class="btn bow" onclick="om('contact')"><i class="ti ti-message"></i>Contactanos</button>
+</div>
+<div class="hstats">
+<div><div class="hsi"><span class="cnt" data-to="8">0</span><span style="font-size:.9rem"> sem</span></div><div class="hsl">Primera etapa activa</div></div>
+<div><div class="hsi"><span class="cnt" data-to="0">0</span></div><div class="hsl">Papel necesario</div></div>
+<div><div class="hsi"><span class="cnt" data-to="100">0</span><span style="font-size:.9rem">%</span></div><div class="hsl">Trazabilidad</div></div>
+</div>
+</div>
+
+<!-- HERO PHONE -->
+<div class="hphone">
+<div class="phone">
+<div class="pnotch"><div class="pcam"></div></div>
+<div class="pscreen">
+<div class="ptop"><div class="ptl"><i class="ti ti-layout-dashboard"></i>Panel General</div><div class="ptr"><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></div></div>
+<div class="pbody">
+<!-- Mini dashboard -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+<div style="background:linear-gradient(135deg,rgba(46,109,180,.1),rgba(46,109,180,.05));border-radius:10px;padding:10px 6px;text-align:center"><div style="font-size:1.1rem;font-weight:900;color:var(--p)">47</div><div style="font-size:.55rem;color:var(--g400)">Activos</div></div>
+<div style="background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border-radius:10px;padding:10px 6px;text-align:center"><div style="font-size:1.1rem;font-weight:900;color:var(--ok)">6</div><div style="font-size:.55rem;color:var(--g400)">Proyectos</div></div>
+<div style="background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(96,165,250,.05));border-radius:10px;padding:10px 6px;text-align:center"><div style="font-size:1.1rem;font-weight:900;color:var(--a2)">312h</div><div style="font-size:.55rem;color:var(--g400)">Semana</div></div>
+</div>
+<div style="font-size:.62rem;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;padding-left:2px">Equipo activo</div>
+<div style="display:flex;flex-direction:column;gap:5px">
+<div class="prow"><div class="pav" style="background:var(--a)">MR</div><div class="prn">M. Rodríguez</div><div class="prt">7h 20m</div><div class="prd dot-on"></div></div>
+<div class="prow"><div class="pav" style="background:#3D7DC8">SL</div><div class="prn">S. López</div><div class="prt">6h 55m</div><div class="prd dot-on"></div></div>
+<div class="prow"><div class="pav" style="background:var(--g400)">CP</div><div class="prn">C. Pedraza</div><div class="prt">—</div><div class="prd dot-off"></div></div>
+<div class="prow"><div class="pav" style="background:var(--p)">JF</div><div class="prn">J. Flores</div><div class="prt">8h 05m</div><div class="prd dot-on"></div></div>
+<div class="prow"><div class="pav" style="background:var(--al)">AG</div><div class="prn">A. García</div><div class="prt">7h 51m</div><div class="prd dot-on"></div></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating notifications -->
+<div class="fnot fn1">
+<div class="fni" style="background:rgba(16,185,129,.1);color:var(--ok)"><i class="ti ti-check"></i></div>
+<div><div class="fnl">Check-in registrado</div><div class="fnv">Obra Norte — 07:52</div></div>
+</div>
+<div class="fnot fn2">
+<div class="fni" style="background:rgba(46,109,180,.1);color:var(--a)"><i class="ti ti-coin"></i></div>
+<div><div class="fnl">Pago procesado</div><div class="fnv">12 empleados — $2.4M</div></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== PROBLEMA ===================== -->
+<section id="problema">
+<div class="wrap">
+<div class="sh fi">
+<div class="lbl"><i class="ti ti-alert-triangle"></i>El problema</div>
+<h2 class="st">¿Cuánto te está costando el desorden?</h2>
+<p class="ss">Las empresas de servicios con personal en campo sufren los mismos problemas de siempre — y se siguen pagando carísimo.</p>
+</div>
+<div class="pg">
+<div class="pcard fi d1">
+<div class="picon pic1"><i class="ti ti-file-shredder"></i></div>
+<h3>Las planillas se pierden o se alteran</h3>
+<p>Las hojas de horas en papel se mojan, se pierden o llegan incompletas. Cuando hay conflicto, no hay forma de saber qué pasó realmente.</p>
+</div>
+<div class="pcard fi d2">
+<div class="picon pic2"><i class="ti ti-calculator-off"></i></div>
+<h3>Errores en los pagos generan conflictos</h3>
+<p>Una hora mal anotada, un día que no se registró. El trabajador reclama, el supervisor no recuerda, y la confianza se erosiona semana a semana.</p>
+</div>
+<div class="pcard fi d3">
+<div class="picon pic3"><i class="ti ti-eye-off"></i></div>
+<h3>La dirección no sabe qué pasa en cada proyecto</h3>
+<p>Para saber cuántas horas se invirtieron en cada obra hay que llamar y esperar planillas. Para entonces, el dato ya es viejo.</p>
+</div>
+<div class="pcard fi d4">
+<div class="picon pic4"><i class="ti ti-clock-off"></i></div>
+<h3>Los supervisores pierden tiempo en papelería</h3>
+<p>Recopilar, revisar y digitalizar partes de trabajo ocupa horas productivas que deberían invertirse en liderar al equipo en campo.</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== SOLUCIÓN ===================== -->
+<section id="solucion">
+<div class="wrap">
+<div class="sh fi">
+<div class="lbl"><i class="ti ti-rocket"></i>La solución</div>
+<h2 class="st">Una plataforma para cada rol</h2>
+<p class="ss">Diseñado para la realidad del trabajo en campo — simple para quien lo usa, poderoso para quien lo gestiona.</p>
+</div>
+<div class="rtabs">
+<button class="rtab on" onclick="sr('w',this)"><i class="ti ti-hard-hat"></i>Trabajador</button>
+<button class="rtab" onclick="sr('s',this)"><i class="ti ti-users-group"></i>Supervisor</button>
+<button class="rtab" onclick="sr('a',this)"><i class="ti ti-building-skyscraper"></i>Administración</button>
+</div>
+
+<!-- Worker Panel -->
+<div class="rpanel on" id="rpw">
+<div class="rcont">
+<div class="rinfo">
+<h3>El trabajador, sin fricción</h3>
+<p>No hace falta saber de tecnología. Un escaneo de QR al llegar al sitio y FieldSync hace el resto.</p>
+<ul class="flist">
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Check-in/out por QR:</strong> escaneá al llegar y al salir, sin formularios ni demoras.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Historial personal:</strong> cada trabajador ve sus propias horas registradas día a día.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Días libres disponibles:</strong> saldo de vacaciones y permisos, siempre actualizado.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Notificaciones de pago:</strong> aviso cuando las horas fueron aprobadas y el pago está en proceso.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Sin papel, sin conflictos:</strong> el registro queda guardado con hora, fecha y GPS.</span></li>
+</ul>
+</div>
+<div class="sphone">
+<div class="sglow"></div>
+<div class="sp">
+<div class="spn"><div class="spc"></div></div>
+<div class="sps">
+<div class="sbar"><div class="sbt"><i class="ti ti-clock-bolt"></i>FieldSync</div><div class="sbr"><i class="ti ti-bell"></i></div></div>
+<div class="sbody">
+<div class="checkin-anim">
+<div class="ca-scan"></div>
+<div class="qrpulse"></div>
+<div class="ca-icon"><i class="ti ti-qrcode"></i></div>
+<div class="ca-label">Escaneá el QR del sitio para registrar tu entrada</div>
+</div>
+<div class="pcd"><div class="pcdi" style="background:rgba(16,185,129,.1);color:var(--ok)"><i class="ti ti-clock-check"></i></div><div><div class="pcdl">Hoy trabajado</div><div class="pcdv">7h 20m</div></div><div class="pcdr"><div class="badge bdg-ok">Activo</div></div></div>
+<div class="pcd"><div class="pcdi" style="background:rgba(46,109,180,.1);color:var(--a)"><i class="ti ti-map-pin"></i></div><div><div class="pcdl">Proyecto actual</div><div class="pcdv">Obra Norte — P03</div></div><div class="pcdr"><div class="badge bdg-bl">En curso</div></div></div>
+<div class="pcd"><div class="pcdi" style="background:rgba(96,165,250,.08);color:var(--a2)"><i class="ti ti-sun"></i></div><div><div class="pcdl">Días libres</div><div class="pcdv">12 días disponibles</div></div></div>
+<div class="pcd"><div class="pcdi" style="background:rgba(16,185,129,.08);color:var(--ok)"><i class="ti ti-coin"></i></div><div><div class="pcdl">Semana anterior</div><div class="pcdv">38h — Pagado ✓</div></div><div class="pcdr"><div class="badge bdg-ok">OK</div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Supervisor Panel -->
+<div class="rpanel" id="rps">
+<div class="rcont">
+<div class="rinfo">
+<h3>El supervisor, siempre en control</h3>
+<p>Sabé en tiempo real quién llegó, cuándo y a qué proyecto. Y solucioná olvidos antes de que se conviertan en conflictos.</p>
+<ul class="flist">
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Vista de equipo en vivo:</strong> quién hizo check-in, a qué hora y en qué sitio.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Corrección de olvidos:</strong> si alguien olvidó registrarse, el supervisor corrige con justificación.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Aprobación grupal:</strong> aprobá las horas de todo el equipo en un solo paso.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Historial por proyecto:</strong> filtrá horas por obra, por semana o por persona.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Alertas de ausencias:</strong> notificación si alguien no registró entrada a tiempo.</span></li>
+</ul>
+</div>
+<div class="sphone">
+<div class="sglow"></div>
+<div class="sp">
+<div class="spn"><div class="spc"></div></div>
+<div class="sps">
+<div class="sbar"><div class="sbt"><i class="ti ti-users-group"></i>Mi Equipo</div><div class="sbr"><i class="ti ti-refresh"></i></div></div>
+<div class="sbody">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px">
+<div><div style="font-size:.78rem;font-weight:800;color:var(--g800)">Obra Norte</div><div style="font-size:.6rem;color:var(--g400)">8 activos · 1 ausente · 1 demorado</div></div>
+<div class="badge bdg-ok" style="font-size:.6rem">En vivo</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:5px">
+<div class="prow"><div class="pav" style="background:var(--a)">MR</div><div class="prn">M. Rodríguez</div><div class="prt">07:48</div><div class="prd dot-on"></div></div>
+<div class="prow"><div class="pav" style="background:#3D7DC8">SL</div><div class="prn">S. López</div><div class="prt">07:55</div><div class="prd dot-on"></div></div>
+<div class="prow"><div class="pav" style="background:var(--g400)">CP</div><div class="prn">C. Pedraza</div><div class="prt">—</div><div class="prd dot-off"></div></div>
+<div class="prow"><div class="pav" style="background:var(--p)">JF</div><div class="prn">J. Flores</div><div class="prt">08:12</div><div class="prd dot-late"></div></div>
+<div class="prow"><div class="pav" style="background:var(--al)">AG</div><div class="prn">A. García</div><div class="prt">07:51</div><div class="prd dot-on"></div></div>
+</div>
+<div style="margin-top:9px;background:linear-gradient(135deg,var(--p),#254E8B);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+<div style="display:flex;align-items:center;gap:7px"><i class="ti ti-circle-check" style="color:#4ADE80;font-size:1.1rem"></i><span style="color:#fff;font-size:.72rem;font-weight:700">Aprobar horas del equipo</span></div>
+<i class="ti ti-chevron-right" style="color:rgba(255,255,255,.5);font-size:.85rem"></i>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Admin Panel -->
+<div class="rpanel" id="rpa">
+<div class="rcont">
+<div class="rinfo">
+<h3>Administración con visibilidad total</h3>
+<p>Un panel único con todos los proyectos, todo el personal y todos los datos que necesitás para tomar decisiones.</p>
+<ul class="flist">
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Dashboard general:</strong> todos los proyectos y personal en un solo lugar, en tiempo real.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Procesamiento de pagos:</strong> calculá sueldos únicamente sobre horas aprobadas.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Gestión de vacaciones y permisos:</strong> aprobación digital, sin papelería ni mails.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Documentación de personal:</strong> contratos, certificados y documentos centralizados.</span></li>
+<li class="fli"><div class="chk"><i class="ti ti-check"></i></div><span><strong>Reportes avanzados:</strong> exportá horas por proyecto, período o trabajador.</span></li>
+</ul>
+</div>
+<div class="sphone">
+<div class="sglow"></div>
+<div class="sp">
+<div class="spn"><div class="spc"></div></div>
+<div class="sps">
+<div class="sbar"><div class="sbt"><i class="ti ti-chart-dots-3"></i>Panel General</div><div class="sbr"><i class="ti ti-download"></i></div></div>
+<div class="sbody">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+<div style="background:linear-gradient(135deg,rgba(46,109,180,.12),rgba(46,109,180,.04));border-radius:9px;padding:10px 8px;text-align:center"><div style="font-size:.95rem;font-weight:900;color:var(--p)">312h</div><div style="font-size:.52rem;color:var(--g400)">Horas semana</div></div>
+<div style="background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.04));border-radius:9px;padding:10px 8px;text-align:center"><div style="font-size:.95rem;font-weight:900;color:var(--ok)">58</div><div style="font-size:.52rem;color:var(--g400)">Personas</div></div>
+</div>
+<div style="font-size:.58rem;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;padding-left:2px">Horas por día</div>
+<div class="minibar" id="minibar">
+<div class="mbar" data-v="42" data-h="75"></div>
+<div class="mbar" data-v="48" data-h="86"></div>
+<div class="mbar" data-v="45" data-h="80"></div>
+<div class="mbar" data-v="50" data-h="89"></div>
+<div class="mbar" data-v="44" data-h="78"></div>
+<div class="mbar" data-v="38" data-h="68"></div>
+<div class="mbar" data-v="45" data-h="80"></div>
+</div>
+<div class="mbl"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+<div style="font-size:.58rem;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin:9px 0 5px;padding-left:2px">Proyectos activos</div>
+<div class="projbar" style="margin-bottom:6px"><div class="pbjn"><span>Obra Norte — P03</span><span class="pbjp">78%</span></div><div class="pbjbg"><div class="pbjb" data-w="78"></div></div><div class="pbjm"><span>22 personas</span><span>142h</span></div></div>
+<div class="projbar" style="margin-bottom:6px"><div class="pbjn"><span>Planta Industrial</span><span class="pbjp">45%</span></div><div class="pbjbg"><div class="pbjb" data-w="45"></div></div><div class="pbjm"><span>18 personas</span><span>98h</span></div></div>
+<div class="projbar"><div class="pbjn"><span>Mantenimiento Centro</span><span class="pbjp">92%</span></div><div class="pbjbg"><div class="pbjb" data-w="92"></div></div><div class="pbjm"><span>12 personas</span><span>72h</span></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== IMPLEMENTACIÓN ===================== -->
+<section id="implementacion">
+<div class="wrap">
+<div class="sh fi">
+<div class="lbl"><i class="ti ti-map-2"></i>Plan de implementación</div>
+<h2 class="st">De cero a completo, por etapas</h2>
+<p class="ss">Empezás con lo urgente y sumás funcionalidad a medida que el equipo se adapta.</p>
+</div>
+<div class="tlg fi" id="tlg">
+<div class="tli tl1 d1">
+<div class="tldot"><i class="ti ti-clock"></i></div>
+<div class="tlbl">Etapa 1</div>
+<div class="tlcard"><h3>Control de horas</h3><p>Reemplazamos el papel desde el día uno. Check-in por QR, registro automático y visibilidad inmediata.</p><div class="tltag tlt1"><i class="ti ti-calendar"></i>6–8 semanas</div></div>
+</div>
+<div class="tli tl2 d2">
+<div class="tldot"><i class="ti ti-coin"></i></div>
+<div class="tlbl">Etapa 2</div>
+<div class="tlcard"><h3>Pagos y aprobaciones</h3><p>Automatizamos cálculo de sueldos sobre horas aprobadas. Cero errores, cero conflictos.</p><div class="tltag tlt2"><i class="ti ti-arrows-right"></i>Siguiente fase</div></div>
+</div>
+<div class="tli tl3 d3">
+<div class="tldot"><i class="ti ti-id"></i></div>
+<div class="tlbl">Etapa 3</div>
+<div class="tlcard"><h3>RRHH completo</h3><p>Vacaciones, permisos, documentación del personal y reportes avanzados integrados.</p><div class="tltag tlt3"><i class="ti ti-arrows-right"></i>Siguiente fase</div></div>
+</div>
+<div class="tli tl4 d4">
+<div class="tldot"><i class="ti ti-world"></i></div>
+<div class="tlbl">Etapa 4</div>
+<div class="tlcard"><h3>Escalamiento SaaS</h3><p>Ofrecelo a otras empresas del rubro y convertilo en una nueva línea de ingresos.</p><div class="tltag tlt4"><i class="ti ti-trending-up"></i>Escalable</div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ===================== COMPARATIVA ===================== -->
+<section id="comparativa">
+<div class="wrap">
+<div class="sh fi">
+<div class="lbl"><i class="ti ti-arrows-exchange"></i>Antes vs. Después</div>
+<h2 class="st">La diferencia es clara</h2>
+<p class="ss">Lo que hoy manejás a mano, mañana se gestiona solo.</p>
+</div>
+<div class="fi" style="overflow-x:auto">
+<table class="ctbl">
+<thead><tr>
+<th>Situación</th>
+<th><i class="ti ti-mood-sad-squint" style="margin-right:5px"></i>Antes</th>
+<th><i class="ti ti-mood-happy" style="margin-right:5px"></i>Con FieldSync</th>
+</tr></thead>
+<tbody>
+<tr><td>Registro de horas</td><td><div class="bfr"><i class="ti ti-x"></i>Papel — se pierde, se altera</div></td><td><div class="aft"><i class="ti ti-check"></i>QR automático con GPS</div></td></tr>
+<tr><td>Cálculo de sueldos</td><td><div class="bfr"><i class="ti ti-x"></i>Manual — errores y conflictos</div></td><td><div class="aft"><i class="ti ti-check"></i>Automático sobre horas aprobadas</div></td></tr>
+<tr><td>Visibilidad</td><td><div class="bfr"><i class="ti ti-x"></i>Llamar y esperar el reporte</div></td><td><div class="aft"><i class="ti ti-check"></i>Dashboard en tiempo real</div></td></tr>
+<tr><td>Tiempo del supervisor</td><td><div class="bfr"><i class="ti ti-x"></i>Horas consolidando papel</div></td><td><div class="aft"><i class="ti ti-check"></i>Aprobación en un clic</div></td></tr>
+<tr><td>Conflictos de pago</td><td><div class="bfr"><i class="ti ti-x"></i>Sin evidencia ni forma de verificar</div></td><td><div class="aft"><i class="ti ti-check"></i>Historial completo y auditable</div></td></tr>
+<tr><td>Documentación</td><td><div class="bfr"><i class="ti ti-x"></i>Archivos físicos dispersos</div></td><td><div class="aft"><i class="ti ti-check"></i>Centralizado, accesible siempre</div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section id="cta">
+<div class="cbg"><div class="cb1"></div><div class="cb2"></div></div>
+<div class="wrap">
+<div class="ci fi">
+<div class="lbl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.75)"><i class="ti ti-rocket"></i>¿Listo para empezar?</div>
+<h2 class="ctit">La primera etapa puede estar<br/>funcionando en 6 a 8 semanas.</h2>
+<p class="csub">Dejanos los datos de tu empresa y te mostramos cómo FieldSync se implementa en tu operación sin interrumpir el trabajo.</p>
+<div class="cbtns">
+<button class="btn bw" onclick="om('contact')"><i class="ti ti-message"></i>Hablar con el equipo</button>
+<button class="btn bow" onclick="om('demo')"><i class="ti ti-player-play"></i>Ver demo primero</button>
+</div>
+<div class="ctr">
+<div class="ctri"><i class="ti ti-shield-check"></i>Implementación acompañada</div>
+<div class="ctri"><i class="ti ti-device-mobile"></i>Funciona en cualquier celular</div>
+<div class="ctri"><i class="ti ti-lock"></i>Datos seguros</div>
+</div>
+</div>
+</div>
+</section>
+
+<footer><div class="wrap"><p>© 2025 FieldSync · <a href="#">Contacto</a> · <a href="#">Privacidad</a></p></div></footer>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="if(event.target===this)cm()">
+<div class="mdl">
+<button class="mx" onclick="cm()"><i class="ti ti-x"></i></button>
+<div id="cf">
+<h2>Hablemos de tu empresa</h2>
+<p>Completá los datos y te contactamos en menos de 24 horas.</p>
+<div class="fg"><label>Nombre completo</label><input type="text" placeholder="Juan García"/></div>
+<div class="fg"><label>Empresa</label><input type="text" placeholder="Servicios Industriales S.A."/></div>
+<div class="fg"><label>Email</label><input type="email" placeholder="juan@empresa.com"/></div>
+<div class="fg"><label>Cantidad de empleados</label><select><option>10 – 50</option><option selected>50 – 100</option><option>100 – 200</option><option>Más de 200</option></select></div>
+<button class="btn bp" style="width:100%;justify-content:center" onclick="sf()"><i class="ti ti-send"></i>Enviar consulta</button>
+</div>
+<div id="df" style="display:none">
+<h2>Solicitá una demo</h2>
+<p>Te mostramos cómo funciona FieldSync en 30 minutos, adaptado a tu tipo de empresa.</p>
+<div class="fg"><label>Nombre completo</label><input type="text" placeholder="Juan García"/></div>
+<div class="fg"><label>Email corporativo</label><input type="email" placeholder="juan@empresa.com"/></div>
+<div class="fg"><label>Teléfono (opcional)</label><input type="tel" placeholder="+54 11 1234-5678"/></div>
+<button class="btn bp" style="width:100%;justify-content:center" onclick="sf()"><i class="ti ti-calendar-event"></i>Reservar demo</button>
+</div>
+<div class="fsu" id="fsu">
+<i class="ti ti-circle-check-filled"></i>
+<h3>¡Consulta enviada!</h3>
+<p>Te contactamos en menos de 24 horas hábiles.</p>
+</div>
+</div>
+</div>
+
+<script>
+// NAV
+function tnav(){const l=document.getElementById('nl'),i=document.getElementById('mi');l.classList.toggle('op');i.className=l.classList.contains('op')?'ti ti-x':'ti ti-menu-2'}
+window.addEventListener('scroll',()=>document.getElementById('nv').classList.toggle('sc',scrollY>20));
+document.querySelectorAll('.nl a').forEach(a=>a.addEventListener('click',()=>{document.getElementById('nl').classList.remove('op');document.getElementById('mi').className='ti ti-menu-2'}));
+
+// FADE IN
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');if(e.target.id==='tlg')setTimeout(()=>e.target.classList.add('anim'),200)}}),{threshold:.15});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// COUNTERS
+const cobs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){cobs.unobserve(e.target);animCnt(e.target)}}),{threshold:.5});
+document.querySelectorAll('.cnt').forEach(el=>cobs.observe(el));
+function animCnt(el){const to=+el.dataset.to,dur=1200;let st;function step(ts){if(!st)st=ts;const p=Math.min((ts-st)/dur,1);el.textContent=Math.round(to*easeOut(p));if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+function easeOut(t){return 1-Math.pow(1-t,3)}
+
+// BARS ANIMATION
+const bobs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){bobs.unobserve(e.target);animBars()}}),{threshold:.5});
+const mb=document.getElementById('minibar');if(mb)bobs.observe(mb);
+function animBars(){document.querySelectorAll('.mbar').forEach(b=>{b.style.height=b.dataset.h+'%'});document.querySelectorAll('.pbjb').forEach(b=>{b.style.width=b.dataset.w+'%'})}
+
+// PROJECT BARS init
+document.querySelectorAll('.pbjb').forEach(b=>b.style.width='0%');
+document.querySelectorAll('.mbar').forEach(b=>b.style.height='4px');
+
+// ROLE TABS
+function sr(r,btn){
+document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('on'));
+btn.classList.add('on');
+document.querySelectorAll('.rpanel').forEach(p=>p.classList.remove('on'));
+document.getElementById('rp'+r).classList.add('on');
+if(r==='a')setTimeout(animBars,200);
+}
+
+// MODAL
+function om(t){
+document.getElementById('cf').style.display=t==='contact'?'block':'none';
+document.getElementById('df').style.display=t==='demo'?'block':'none';
+document.getElementById('fsu').style.display='none';
+document.getElementById('mo').classList.add('op');
+document.body.style.overflow='hidden'}
+function cm(){document.getElementById('mo').classList.remove('op');document.body.style.overflow=''}
+function sf(){
+document.getElementById('cf').style.display='none';
+document.getElementById('df').style.display='none';
+document.getElementById('fsu').style.display='block';
+setTimeout(cm,2500)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cm()});
+</script>
+</body>
+</html>
